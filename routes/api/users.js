@@ -6,6 +6,9 @@ const jwt = require("jsonwebtoken");
 const keys = require("../../config/keys");
 const passport = require("passport"); // for protected / private routes
 
+// load input validation
+const validateRegisterInput = require("../../validation/register");
+
 // bringing in user model for registration
 const User = require("../../models/User");
 
@@ -18,13 +21,23 @@ router.get("/test", (req, res) => res.json({ message: "users works" }));
 // @description     register user
 // @access          public
 router.post("/register", (req, res) => {
+  // destructuring method from register.js
+  const { errors, isValid } = validateRegisterInput(req.body);
+
+  // check validation (like if there is an empty field)
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
   // does email exist?
   User.findOne({
     email: req.body.email,
   }).then((user) => {
     if (user) {
+      errors.email = "email already exists"; // included after creating the errors (from registration)
       return res.status(400).json({
-        email: "email already exists",
+        // email: "email already exists",
+        errors, // since errors now exists
       });
     } else {
       const avatar = gravatar.url(req.body.email, {
