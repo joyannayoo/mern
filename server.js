@@ -1,11 +1,10 @@
 // lines 3-12 is enough to get our server running
 // in terminal you can run "node server" which runs server.js
 // in browser, you can run server.js at localhost:5000
-
 const express = require("express");
 const mongoose = require("mongoose");
-
 const bodyParser = require("body-parser");
+const passport = require("passport");
 
 // connecting routes
 const users = require("./routes/api/users");
@@ -31,7 +30,11 @@ mongoose
   .then(() => console.log("mongodb connected"))
   .catch((err) => console.log(`error: ${err}`));
 
-app.get("/", (req, res) => res.send("Hello World"));
+// passport middleware
+app.use(passport.initialize());
+
+// passport config
+require("./config/passport")(passport);
 
 // use routes
 app.use("/api/users", users);

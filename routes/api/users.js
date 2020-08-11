@@ -4,16 +4,17 @@ const gravatar = require("gravatar");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const keys = require("../../config/keys");
+const passport = require("passport"); // for protected / private routes
 
 // bringing in user model for registration
 const User = require("../../models/User");
 
-// @route           api/users/test
+// @route           GET api/users/test
 // @description     tests users route
 // @access          public
 router.get("/test", (req, res) => res.json({ message: "users works" }));
 
-// @route           api/users/register
+// @route           POST api/users/register
 // @description     register user
 // @access          public
 router.post("/register", (req, res) => {
@@ -54,7 +55,7 @@ router.post("/register", (req, res) => {
   });
 });
 
-// @route           api/users/login
+// @route           POST api/users/login
 // @description     login user / returning jwt token
 // @access          public
 router.post("/login", (req, res) => {
@@ -78,7 +79,7 @@ router.post("/login", (req, res) => {
         // sign token
         jwt.sign(
           payload,
-          keys.secretKey,
+          keys.secretOrKey,
           { expiresIn: 3600 },
           (error, token) => {
             res.json({ success: true, token: "Bearer " + token });
@@ -90,6 +91,21 @@ router.post("/login", (req, res) => {
     });
   });
 });
+
+// @route           GET api/users/current
+// @description     return current user
+// @access          private
+router.get(
+  "/current",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    res.json({
+      id: req.user.id,
+      name: req.user.name,
+      email: req.user.email,
+    });
+  }
+);
 
 // must export for server.js to pick route up
 module.exports = router;
